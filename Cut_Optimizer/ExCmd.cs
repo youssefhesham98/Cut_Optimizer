@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Cut_Optimizer
 {
+    [Transaction(TransactionMode.Manual)]
     public class ExCmd : IExternalCommand
     {
         private static Mainform maininterface = null;
@@ -25,11 +26,16 @@ namespace Cut_Optimizer
 
             uiapp = commandData.Application;
             uiapp.PostCommand(RevitCommandId.LookupPostableCommandId(PostableCommand.AlignedToSelectedLevels));
+            //uiapp.Application.DocumentChanged += DeletedPipeTracker.OnDocumentChanged;
+            #region On Document Changed
+            //var deleted = DeletedPipeTracker.GetLastDeletedPipeIds();
 
-            //ExCmd02View excmdview02 = new ExCmd02View();
-            //excmdview02.Show();
-
-            //Data.Intialize();
+            //if (deleted.Count == 0)
+            //    TaskDialog.Show("Deleted Pipes", "No deleted pipes recorded.");
+            //else
+            //    TaskDialog.Show("Deleted Pipes", "Deleted Pipe IDs: " + string.Join(", ", deleted));
+            #endregion
+            Data.Intialize();
 
             // If the form is already open, close it before opening a new one
             if (maininterface != null && !maininterface.IsDisposed)
