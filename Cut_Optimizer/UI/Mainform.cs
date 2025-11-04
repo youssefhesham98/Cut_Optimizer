@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Cut_Optimizer.ExEvt;
 
 namespace Cut_Optimizer.UI
 {
@@ -15,6 +16,13 @@ namespace Cut_Optimizer.UI
         public Mainform()
         {
             InitializeComponent();
+        }
+
+        private void test_Click(object sender, EventArgs e)
+        {
+            ExCmd.exevt.request = Request.Test;
+            ExCmd.exevthan.Raise();
+         
         }
     }
 }

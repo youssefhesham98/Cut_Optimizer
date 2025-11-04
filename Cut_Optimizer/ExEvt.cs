@@ -16,8 +16,8 @@ namespace Cut_Optimizer
         {
             switch (request)
             {
-                case Request.XXXX:
-
+                case Request.Test:
+                    RvtUtils.Collector(ExCmd.doc);
                     break;
             }
         }
@@ -28,7 +28,7 @@ namespace Cut_Optimizer
         }
         public enum Request
         {
-            XXXX,
+            Test,
         }
     }
 }
