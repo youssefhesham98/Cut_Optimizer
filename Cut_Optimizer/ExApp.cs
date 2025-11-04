@@ -76,7 +76,7 @@ namespace Cut_Optimizer
                     //Stream stream = assembly.GetManifestResourceStream("Naming_Convention_Tester.bin.Resources.pb.png");
                     //PngBitmapDecoder decoder = new PngBitmapDecoder(stream , BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
                     //pb.LargeImage = decoder.Frames[0];
-                    pb.LargeImage = GetImageSource("Directory.ICON_NAME96.png");
+                    pb.LargeImage = GetImageSource("Cut_Optimizer.bin.Resources.LOGO.png");
                 }
             }
             catch (Exception ex) { /*TaskDialog.Show("Failed", ex.Message.ToString());*/ }
