@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.Attributes;
+using Cut_Optimizer.UI;
 
 namespace Cut_Optimizer
 {
@@ -17,7 +18,7 @@ namespace Cut_Optimizer
             switch (request)
             {
                 case Request.Test:
-                    RvtUtils.Collector(ExCmd.doc);
+                    RvtUtils.Collector(ExCmd.doc,Mainform.selectedDates);
                     break;
             }
         }
