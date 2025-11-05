@@ -198,12 +198,11 @@ namespace Cut_Optimizer
             var parsedDates = selectedDates
                 .Select(d =>
                 {
-                    DateTime.TryParseExact(d, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsed);
+                    DateTime.TryParseExact(d, "dd/MM/yyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsed);
                     return parsed;
                 })
                 .Where(dt => dt != DateTime.MinValue)
                 .OrderBy(dt => dt)
-                .Select(d => d.ToString("mm/dd/yyyy"))
                 .ToList();
 
             if (parsedDates.Count == 0)
@@ -211,8 +210,15 @@ namespace Cut_Optimizer
                 TaskDialog.Show("Export Rebars", "No valid dates found in the provided list.");
                 return;
             }
-
+            var sb = new StringBuilder();
+            List<string> displayDates = new List<string>();
             // Convert parsed dates back to MM/dd/yyyy for display
+            foreach (var date in parsedDates)
+            {
+                sb.Append(date.ToString("MM/dd/yyyy") + "\n");
+                displayDates.Add(date.ToString("MM/dd/yyyy"));
+            }
+
             //string fromDate = parsedDates.First().ToString("MM/dd/yyyy");
             //string toDate = parsedDates.Last().ToString("MM/dd/yyyy");
 
@@ -228,10 +234,10 @@ namespace Cut_Optimizer
             //        return false;
             //    })
             //    .ToList();
-
+            TaskDialog.Show("Parsed Dates", sb.ToString());
             // Filter the data list by selected dates
             var filteredData = rebarDataList
-                .Where(d => parsedDates.Contains(d.Date))
+                .Where(d => displayDates.Contains(d.Date))
                 .ToList();
 
             if (filteredData.Count == 0)
