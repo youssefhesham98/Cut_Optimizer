@@ -22,6 +22,7 @@ namespace Cut_Optimizer
 {
     public class RvtUtils
     {
+        ///
         /// <summary>
         /// Collects rebar data from the main document and linked documents,
         /// </summary>
