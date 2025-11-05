@@ -86,7 +86,6 @@ Cut Optimizer/
 ├── .gitignore # Git Ignore Rules
 └── .gitattributes # Git Attributes
 
-
 ---
 
 ## 🚀 Installation  
@@ -96,7 +95,7 @@ Cut Optimizer/
 3. Build the solution to generate the `.dll` and `.addin` files.  
 4. Copy the files to your Revit Add-ins directory:  
    ```bash
-   C:\ProgramData\Autodesk\Revit\Addins\2022\
+   C:\ProgramData\Autodesk\Revit\Addins\202x\
 
 🔮 Future Enhancements
 
@@ -126,6 +125,4 @@ This project is licensed under the MIT License — you are free to use, modify, 
 
 💬 “Every millimeter saved in steel is a step closer to sustainable construction.”
 — Youssef Hesham ✂️🏗️
-
-## 📁 Project Structure  
 
