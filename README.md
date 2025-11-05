@@ -78,16 +78,6 @@ Generates transparent and auditable cutting schedules that can be exported for f
 
 ---
 
-Cut Optimizer/
-├── CutOptimizer/ # Source Code (C#, Revit API)
-├── CutOptimizer.sln # Visual Studio Solution File
-├── demo/ # Screenshots or Demo Videos
-├── README.md # Project Documentation
-├── .gitignore # Git Ignore Rules
-└── .gitattributes # Git Attributes
-
----
-
 ## 🚀 Installation  
 
 1. **Clone** or **download** this repository.  
