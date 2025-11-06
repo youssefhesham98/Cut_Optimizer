@@ -27,7 +27,7 @@ namespace Cut_Optimizer
         /// Collects rebar data from the main document and linked documents,
         /// </summary>
         /// <param name="doc"></param>
-        public static void Collector(Document doc, List<string> selectedDates)
+        public static void Collector(Document doc,string fromdate ,string todate)
         {
             using (Transaction tns = new Transaction(doc, "rebarring"))
             {
@@ -50,23 +50,23 @@ namespace Cut_Optimizer
                     }
 
                     // --- Aggregate by diameter & length ---
-                    List<Data> aggregated = AggregateRebarData(allRebars);
+                    //List<Data> aggregated = AggregateRebarData(allRebars);
 
                     // --- Export to Excel ---
                     string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                     string excelPath = Path.Combine(desktopPath, $"RebarSummary_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
 
-                    FilteredElementCollector rebarCollector = new FilteredElementCollector(doc)
-                                            .OfClass(typeof(Rebar))
-                                            .WhereElementIsNotElementType();
-                    int x = 0;
-                    foreach (var bar in rebarCollector)
-                    {
-                        Parameter NoofBars = bar.LookupParameter("No. of Bars");
-                        NoofBars.Set(aggregated[x].NoOfBars);
-                    }
+                    //FilteredElementCollector rebarCollector = new FilteredElementCollector(doc)
+                    //                        .OfClass(typeof(Rebar))
+                    //                        .WhereElementIsNotElementType();
+                    //int x = 0;
+                    //foreach (var bar in rebarCollector)
+                    //{
+                    //    Parameter NoofBars = bar.LookupParameter("No. of Bars");
+                    //    NoofBars.Set(aggregated[x].NoOfBars);
+                    //}
 
-                    ExportRebarSummaryToExcel(aggregated,selectedDates, excelPath);
+                    ExportRebarSummaryToExcel(fromdate,todate,allRebars,excelPath);
 
                     TaskDialog.Show("Rebar Summary", $"Export completed successfully.\nFile saved at:\n{excelPath}");
                 }
@@ -95,30 +95,48 @@ namespace Cut_Optimizer
 
             foreach (Rebar rebar in rebarCollector)
             {
-                var dia = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(double.Parse(GetParameterValue(rebar, "Bar Diameter")),UnitTypeId.Millimeters));
-                var len = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(double.Parse(GetParameterValue(rebar, "Bar Length")),UnitTypeId.Millimeters));
+                // Get the type element (Rebar Type)
+                ElementId typeId = rebar.GetTypeId();
+                Element rebarType = rebar.Document.GetElement(typeId);
 
-                double totalLen = 0;
-                try
+                // Now get the parameter from the type
+                Parameter typeParam = rebarType.LookupParameter("Bar Diameter");
+                double diameterr = 0;
+                if (typeParam != null)
                 {
-                    // Try to read numerical total bar length if present
-                    string totalStr = GetParameterValue(rebar, "Total Bar Length");
-                    double.TryParse(totalStr, out totalLen);
+                    if (typeParam.StorageType == StorageType.Double)
+                        diameterr = UnitUtils.ConvertFromInternalUnits(typeParam.AsDouble(), UnitTypeId.Millimeters);
+                    else
+                        double.TryParse(typeParam.AsString(), out diameterr);
+                    TaskDialog.Show("Diameter", $"Bar Diameter = {diameterr}");
                 }
-                catch { }
+                else
+                {
+                    TaskDialog.Show("Error", "Parameter 'Bar Diameter' not found on rebar type.");
+                }
 
+                // Get the type element (Rebar Type)
+              
+                double len = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(double.Parse(rebar.LookupParameter("Bar Length").AsString()),UnitTypeId.Millimeters));
+                double totallen = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(double.Parse(rebar.LookupParameter("Total Bar Length").AsString()), UnitTypeId.Millimeters));
+                double noofbars = Math.Ceiling(totallen / 12000);
+                string dateStr = rebar.LookupParameter("Date").AsString();
+                string labelStr = rebar.LookupParameter("Rebar Label").AsString();
+                double weight = Math.Ceiling((diameterr * diameterr) /162.28 * totallen); // in kg
+                double weightton = weight / 1000;// in ton
+             
                 Data data = new Data
                 {
                     Source = sourceLabel,
                     RebarId = rebar.Id.IntegerValue,
-                    BarDiameter = dia,
+                    BarDiameter = diameterr,
                     BarLength = len,
-                    TotalBarLength = Math.Ceiling(totalLen),
-                    NoOfBars = 1, // We'll calculate grouped totals later
-                    Weight = GetParameterValue(rebar, "Weight"),
-                    WeightTon = GetParameterValue(rebar, "Weight (ton)"),
-                    Date = GetParameterValue(rebar, "Date"),
-                    Label = GetParameterValue(rebar, "Rebar Label")
+                    TotalBarLength = totallen,
+                    NoOfBars = noofbars, // We'll calculate grouped totals later
+                    Weight = weight,
+                    WeightTon = weightton,
+                    Date = dateStr,
+                    Label = labelStr
                 };
 
                 list.Add(data);
@@ -158,86 +176,58 @@ namespace Cut_Optimizer
         /// <returns></returns>
         private static List<Data> AggregateRebarData(List<Data> allRebars)
         {
-            var grouped = allRebars
-                .Where(r => !string.IsNullOrEmpty(r.BarDiameter.ToString()) && !string.IsNullOrEmpty(r.BarLength.ToString()))
+            //return grouped;
+            if (allRebars == null || allRebars.Count == 0)
+                return new List<Data>();
+
+            // Group to calculate aggregate values
+            var groupSums = allRebars
                 .GroupBy(r => new { r.BarDiameter, r.BarLength, r.Source })
-                .Select(g => new Data
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        TotalBarLength = g.Sum(x => x.TotalBarLength),
+                        NoOfBars = g.Count()
+                    });
+
+            // Update each item with the corresponding aggregated values
+            foreach (var rebar in allRebars)
+            {
+                var key = new { rebar.BarDiameter, rebar.BarLength, rebar.Source };
+                if (groupSums.ContainsKey(key))
                 {
-                    Source = g.Key.Source,
-                    BarDiameter = g.Key.BarDiameter,
-                    BarLength = g.Key.BarLength,
-                    NoOfBars = g.Count(),
-                    TotalBarLength = g.Sum(x => x.TotalBarLength),
-                    Weight = "-",     // optional: average or total weight
-                    WeightTon = "-",
-                    Date = "-",
-                    Label = "-"
-                })
+                    rebar.TotalBarLength = groupSums[key].TotalBarLength;
+                    rebar.NoOfBars = groupSums[key].NoOfBars;
+                }
+            }
+
+            // Return updated list (keeps each item’s own Weight, WeightTon, Date, Label)
+            return allRebars
                 .OrderBy(r => r.Source)
                 .ThenBy(r => r.BarDiameter)
                 .ThenBy(r => r.BarLength)
                 .ToList();
-
-            return grouped;
         }
-        private static void ExportRebarSummaryToExcel(List<Data> rebarDataList,List<string> selectedDates, string savePath)
+        private static void ExportRebarSummaryToExcel(string fromdate,string todate,List<Data> rebarDataList,/*List<string> selectedDates,*/ string savePath)
         {
             if (rebarDataList == null || rebarDataList.Count == 0)
             {
                 TaskDialog.Show("Export Rebars", "No data to export.");
                 return;
             }
-
-            if (selectedDates == null || selectedDates.Count == 0)
-            {
-                TaskDialog.Show("Export Rebars", "No date range provided for export.");
-                return;
-            }
-
-            // Parse and sort the date range safely (input format dd/MM/yyyy → output MM/dd/yyyy)
-            var parsedDates = selectedDates
-                .Select(d =>
-                {
-                    DateTime.TryParseExact(d, "dd/MM/yyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsed);
-                    return parsed;
-                })
-                .Where(dt => dt != DateTime.MinValue)
-                .OrderBy(dt => dt)
-                .ToList();
-
-            if (parsedDates.Count == 0)
-            {
-                TaskDialog.Show("Export Rebars", "No valid dates found in the provided list.");
-                return;
-            }
+         
+            var selectedDateSet = GetDateRangeList(fromdate, todate);
             var sb = new StringBuilder();
-            List<string> displayDates = new List<string>();
-            // Convert parsed dates back to MM/dd/yyyy for display
-            foreach (var date in parsedDates)
+
+            foreach (var date in selectedDateSet)
             {
-                sb.Append(date.ToString("MM/dd/yyyy") + "\n");
-                displayDates.Add(date.ToString("MM/dd/yyyy"));
+                sb.AppendLine(date);
             }
-
-            //string fromDate = parsedDates.First().ToString("MM/dd/yyyy");
-            //string toDate = parsedDates.Last().ToString("MM/dd/yyyy");
-
-            //// Filter the rebar data by comparing parsed DateTime values
-            //var filteredData = rebarDataList
-            //    .Where(d =>
-            //    {
-            //        if (DateTime.TryParseExact(d.Date, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime rebarDate) ||
-            //            DateTime.TryParseExact(d.Date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out rebarDate))
-            //        {
-            //            return rebarDate >= fromDate && rebarDate <= toDate;
-            //        }
-            //        return false;
-            //    })
-            //    .ToList();
-            TaskDialog.Show("Parsed Dates", sb.ToString());
+            TaskDialog.Show("Selected Dates", sb.ToString());
             // Filter the data list by selected dates
             var filteredData = rebarDataList
-                .Where(d => displayDates.Contains(d.Date))
+                .Where(d => selectedDateSet.Contains(d.Date))
                 .ToList();
 
             if (filteredData.Count == 0)
@@ -254,9 +244,9 @@ namespace Cut_Optimizer
 
                 // --- Add Export Date Range Info ---
                 ws.Cells[1, 1].Value = "Export From:";
-                ws.Cells[1, 2].Value = selectedDates.First();
+                ws.Cells[1, 2].Value = selectedDateSet.First();
                 ws.Cells[2, 1].Value = "Export To:";
-                ws.Cells[2, 2].Value = selectedDates.Last();
+                ws.Cells[2, 2].Value = selectedDateSet.Last();
 
                 string[] headers = { "Source Model","Rebar ID", "Bar Diameter", "Bar Length", "Total Bar Length", "No. of Bars","Weight","Weight (ton)","Date","Rebar Label"};
                 int headerRow = 4; // Start headers below the export info
@@ -307,6 +297,31 @@ namespace Cut_Optimizer
         {
             var match = Regex.Match(input, pattern);
             return match.Success ? match.Groups[1].Value.Trim() : "N/A";
+        }
+        public static List<string> GetDateRangeList(string fromDateStr, string toDateStr)
+        {
+            string[] formats = { "dd/MM/yyyy", "d/M/yyyy", "d/MM/yyyy", "dd/M/yyyy" };
+
+            if (!DateTime.TryParseExact(fromDateStr, formats, CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out DateTime fromDate) ||
+                !DateTime.TryParseExact(toDateStr, formats, CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out DateTime toDate))
+            {
+                throw new ArgumentException("Invalid date format. Please use dd/MM/yyyy or d/M/yyyy.");
+            }
+
+            if (fromDate > toDate)
+            {
+                (fromDate, toDate) = (toDate, fromDate); // swap if reversed
+            }
+
+            List<string> dateList = new List<string>();
+            for (var date = fromDate; date <= toDate; date = date.AddDays(1))
+            {
+                dateList.Add(date.ToString("yyyyMMdd"));
+            }
+
+            return dateList;
         }
     }
 

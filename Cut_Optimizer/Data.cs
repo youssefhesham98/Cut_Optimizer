@@ -14,9 +14,9 @@ namespace Cut_Optimizer
         public double BarDiameter { get; set; }
         public double BarLength { get; set; }
         public double TotalBarLength { get; set; }
-        public int NoOfBars { get; set; }
-        public string Weight { get; set; }
-        public string WeightTon { get; set; }
+        public double NoOfBars { get; set; }
+        public double Weight { get; set; }
+        public double WeightTon { get; set; }
         public string Date { get; set; }
         public string Label { get; set; }
 
