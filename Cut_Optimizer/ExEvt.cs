@@ -18,7 +18,7 @@ namespace Cut_Optimizer
             switch (request)
             {
                 case Request.Test:
-                    RvtUtils.Collector(ExCmd.doc,Mainform.fromDate,Mainform.toDate);
+                    RvtUtils.Collector(ExCmd.doc,Mainform.fromDate,Mainform.toDate,Mainform.ttle,Mainform.directory);
                     break;
             }
         }

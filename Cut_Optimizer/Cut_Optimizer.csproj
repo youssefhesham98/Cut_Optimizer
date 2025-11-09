@@ -108,5 +108,14 @@
   <ItemGroup>
     <EmbeddedResource Include="bin\Resources\LOGO.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Resources\EDECS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Resources\Linkedin.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Resources\Close.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

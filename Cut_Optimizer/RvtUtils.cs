@@ -27,7 +27,7 @@ namespace Cut_Optimizer
         /// Collects rebar data from the main document and linked documents,
         /// </summary>
         /// <param name="doc"></param>
-        public static void Collector(Document doc,string fromdate ,string todate)
+        public static void Collector(Document doc,string fromdate ,string todate,string title,string path)
         {
             using (Transaction tns = new Transaction(doc, "rebarring"))
             {
@@ -49,22 +49,9 @@ namespace Cut_Optimizer
                         allRebars.AddRange(GetRebarsFromDocument(linkDoc, linkInstance.Name));
                     }
 
-                    // --- Aggregate by diameter & length ---
-                    //List<Data> aggregated = AggregateRebarData(allRebars);
-
                     // --- Export to Excel ---
-                    string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                    string excelPath = Path.Combine(desktopPath, $"RebarSummary_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
-
-                    //FilteredElementCollector rebarCollector = new FilteredElementCollector(doc)
-                    //                        .OfClass(typeof(Rebar))
-                    //                        .WhereElementIsNotElementType();
-                    //int x = 0;
-                    //foreach (var bar in rebarCollector)
-                    //{
-                    //    Parameter NoofBars = bar.LookupParameter("No. of Bars");
-                    //    NoofBars.Set(aggregated[x].NoOfBars);
-                    //}
+                    //string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                    string excelPath = Path.Combine(path, $"{title}_RebarSummary_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
 
                     ExportRebarSummaryToExcel(fromdate,todate,allRebars,excelPath);
 
@@ -99,22 +86,6 @@ namespace Cut_Optimizer
                 Element rebarType = rebar.Document.GetElement(typeId);
                 Parameter typeParam = rebarType.LookupParameter("Bar Diameter");
                 double diameterr = UnitUtils.ConvertFromInternalUnits(typeParam.AsDouble(), UnitTypeId.Millimeters);
-                //double diameterr = 0;
-                //if (typeParam != null)
-                //{
-                //    if (typeParam.StorageType == StorageType.Double)
-                //        diameterr = UnitUtils.ConvertFromInternalUnits(typeParam.AsDouble(), UnitTypeId.Millimeters);
-                //    else
-                //        double.TryParse(typeParam.AsString(), out diameterr);
-                //    TaskDialog.Show("Diameter", $"Bar Diameter = {diameterr}");
-                //}
-                //else
-                //{
-                //    TaskDialog.Show("Error", "Parameter 'Bar Diameter' not found on rebar type.");
-                //}
-
-                // Get the type element (Rebar Type)
-              
                 double len = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(rebar.LookupParameter("Bar Length").AsDouble(),UnitTypeId.Millimeters));
                 double totallen = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(rebar.LookupParameter("Total Bar Length").AsDouble(), UnitTypeId.Millimeters));
                 double noofbars = Math.Ceiling(totallen / 12000);
@@ -216,13 +187,7 @@ namespace Cut_Optimizer
             }
          
             var selectedDateSet = GetDateRangeList(fromdate, todate);
-            var sb = new StringBuilder();
 
-            foreach (var date in selectedDateSet)
-            {
-                sb.AppendLine(date);
-            }
-            TaskDialog.Show("Selected Dates", sb.ToString());
             // Filter the data list by selected dates
             var filteredData = rebarDataList
                 .Where(d => selectedDateSet.Contains(d.Date))
