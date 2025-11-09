@@ -13,6 +13,7 @@ namespace Cut_Optimizer
         public int RebarId { get; set; }
         public double BarDiameter { get; set; }
         public double BarLength { get; set; }
+        public double BarCuts { get; set; }
         public double TotalBarLength { get; set; }
         public double NoOfBars { get; set; }
         public double Weight { get; set; }

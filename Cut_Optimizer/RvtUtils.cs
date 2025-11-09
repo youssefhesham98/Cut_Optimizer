@@ -100,6 +100,7 @@ namespace Cut_Optimizer
                     RebarId = rebar.Id.IntegerValue,
                     BarDiameter = diameterr,
                     BarLength = len,
+                    BarCuts = Math.Ceiling(totallen/len),
                     TotalBarLength = totallen,
                     NoOfBars = noofbars, // We'll calculate grouped totals later
                     Weight = weight,
@@ -214,7 +215,7 @@ namespace Cut_Optimizer
                 ws.Cells[2, 1].Value = "Export To:";
                 ws.Cells[2, 2].Value = int.Parse(selectedDateSet.Last());
 
-                string[] headers = { "Source Model","Rebar ID", "Bar Diameter", "Bar Length", "Total Bar Length", "No. of Bars","Weight","Weight (ton)","Date","Rebar Label"};
+                string[] headers = { "Source Model","Rebar ID", "Bar Diameter", "Bar Length","No. of Bar Cuts", "Total Bar Length", "No. of Bars","Weight","Weight (ton)","Date","Rebar Label"};
                 int headerRow = 4; // Start headers below the export info
                 for (int i = 0; i < headers.Length; i++)
                 {
@@ -238,12 +239,13 @@ namespace Cut_Optimizer
                         ws.Cells[row, 2].Value = item.RebarId;
                         ws.Cells[row, 3].Value = item.BarDiameter;
                         ws.Cells[row, 4].Value = item.BarLength;
-                        ws.Cells[row, 5].Value = item.TotalBarLength;
-                        ws.Cells[row, 6].Value = item.NoOfBars;
-                        ws.Cells[row, 7].Value = item.Weight;
-                        ws.Cells[row, 8].Value = item.WeightTon;
-                        ws.Cells[row, 9].Value = int.Parse(item.Date);
-                        ws.Cells[row, 10].Value = item.Label;
+                        ws.Cells[row, 5].Value = item.BarCuts;
+                        ws.Cells[row, 6].Value = item.TotalBarLength;
+                        ws.Cells[row, 7].Value = item.NoOfBars;
+                        ws.Cells[row, 8].Value = item.Weight;
+                        ws.Cells[row, 9].Value = item.WeightTon;
+                        ws.Cells[row, 10].Value = int.Parse(item.Date);
+                        ws.Cells[row, 11].Value = item.Label;
                         row++;
                     }
 
