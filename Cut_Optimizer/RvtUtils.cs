@@ -95,30 +95,28 @@ namespace Cut_Optimizer
 
             foreach (Rebar rebar in rebarCollector)
             {
-                // Get the type element (Rebar Type)
                 ElementId typeId = rebar.GetTypeId();
                 Element rebarType = rebar.Document.GetElement(typeId);
-
-                // Now get the parameter from the type
                 Parameter typeParam = rebarType.LookupParameter("Bar Diameter");
-                double diameterr = 0;
-                if (typeParam != null)
-                {
-                    if (typeParam.StorageType == StorageType.Double)
-                        diameterr = UnitUtils.ConvertFromInternalUnits(typeParam.AsDouble(), UnitTypeId.Millimeters);
-                    else
-                        double.TryParse(typeParam.AsString(), out diameterr);
-                    TaskDialog.Show("Diameter", $"Bar Diameter = {diameterr}");
-                }
-                else
-                {
-                    TaskDialog.Show("Error", "Parameter 'Bar Diameter' not found on rebar type.");
-                }
+                double diameterr = UnitUtils.ConvertFromInternalUnits(typeParam.AsDouble(), UnitTypeId.Millimeters);
+                //double diameterr = 0;
+                //if (typeParam != null)
+                //{
+                //    if (typeParam.StorageType == StorageType.Double)
+                //        diameterr = UnitUtils.ConvertFromInternalUnits(typeParam.AsDouble(), UnitTypeId.Millimeters);
+                //    else
+                //        double.TryParse(typeParam.AsString(), out diameterr);
+                //    TaskDialog.Show("Diameter", $"Bar Diameter = {diameterr}");
+                //}
+                //else
+                //{
+                //    TaskDialog.Show("Error", "Parameter 'Bar Diameter' not found on rebar type.");
+                //}
 
                 // Get the type element (Rebar Type)
               
-                double len = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(double.Parse(rebar.LookupParameter("Bar Length").AsString()),UnitTypeId.Millimeters));
-                double totallen = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(double.Parse(rebar.LookupParameter("Total Bar Length").AsString()), UnitTypeId.Millimeters));
+                double len = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(rebar.LookupParameter("Bar Length").AsDouble(),UnitTypeId.Millimeters));
+                double totallen = Math.Ceiling(UnitUtils.ConvertFromInternalUnits(rebar.LookupParameter("Total Bar Length").AsDouble(), UnitTypeId.Millimeters));
                 double noofbars = Math.Ceiling(totallen / 12000);
                 string dateStr = rebar.LookupParameter("Date").AsString();
                 string labelStr = rebar.LookupParameter("Rebar Label").AsString();
