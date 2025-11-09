@@ -190,7 +190,10 @@ namespace Cut_Optimizer
 
             // Filter the data list by selected dates
             var filteredData = rebarDataList
-                .Where(d => selectedDateSet.Contains(d.Date))
+                .Where(d => selectedDateSet.Contains(d.Date.ToString()))
+                .OrderBy(d => d.BarDiameter)   
+                .ThenBy(d => d.Date)
+                .ThenBy(d => d.Label)
                 .ToList();
 
             if (filteredData.Count == 0)
@@ -207,9 +210,9 @@ namespace Cut_Optimizer
 
                 // --- Add Export Date Range Info ---
                 ws.Cells[1, 1].Value = "Export From:";
-                ws.Cells[1, 2].Value = selectedDateSet.First();
+                ws.Cells[1, 2].Value = int.Parse(selectedDateSet.First());
                 ws.Cells[2, 1].Value = "Export To:";
-                ws.Cells[2, 2].Value = selectedDateSet.Last();
+                ws.Cells[2, 2].Value = int.Parse(selectedDateSet.Last());
 
                 string[] headers = { "Source Model","Rebar ID", "Bar Diameter", "Bar Length", "Total Bar Length", "No. of Bars","Weight","Weight (ton)","Date","Rebar Label"};
                 int headerRow = 4; // Start headers below the export info
@@ -217,23 +220,46 @@ namespace Cut_Optimizer
                 {
                     ws.Cells[headerRow, i + 1].Value = headers[i];
                     ws.Cells[headerRow, i + 1].Style.Font.Bold = true;
-                    ws.Cells[headerRow, i + 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    ws.Cells[headerRow, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
                     ws.Cells[headerRow, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                 }
 
                 int row = headerRow + 1;
-                foreach (var item in filteredData)
+
+                // Group by Bar Diameter for summary
+                var groupedData = filteredData
+                    .GroupBy(d => d.BarDiameter)
+                    .OrderBy(g => g.Key); // ensure ascending diameter order
+                foreach (var group in groupedData)
                 {
-                    ws.Cells[row, 1].Value = item.Source;
-                    ws.Cells[row, 2].Value = item.RebarId;
-                    ws.Cells[row, 3].Value = item.BarDiameter;
-                    ws.Cells[row, 4].Value = item.BarLength;
-                    ws.Cells[row, 5].Value = item.TotalBarLength;
-                    ws.Cells[row, 6].Value = item.NoOfBars;
-                    ws.Cells[row, 7].Value = item.Weight;
-                    ws.Cells[row, 8].Value = item.WeightTon;
-                    ws.Cells[row, 9].Value = item.Date;
-                    ws.Cells[row, 10].Value = item.Label;
+                    foreach (var item in filteredData)
+                    {
+                        ws.Cells[row, 1].Value = item.Source;
+                        ws.Cells[row, 2].Value = item.RebarId;
+                        ws.Cells[row, 3].Value = item.BarDiameter;
+                        ws.Cells[row, 4].Value = item.BarLength;
+                        ws.Cells[row, 5].Value = item.TotalBarLength;
+                        ws.Cells[row, 6].Value = item.NoOfBars;
+                        ws.Cells[row, 7].Value = item.Weight;
+                        ws.Cells[row, 8].Value = item.WeightTon;
+                        ws.Cells[row, 9].Value = int.Parse(item.Date);
+                        ws.Cells[row, 10].Value = item.Label;
+                        row++;
+                    }
+
+                    // --- Add summary row for this diameter ---
+                    ws.Cells[row, 3].Value = $"{group.Key} mm Total";
+                    ws.Cells[row, 3].Style.Font.Bold = true;
+
+                    ws.Cells[row, 5].Value = group.Sum(x => x.TotalBarLength);
+                    ws.Cells[row, 6].Value = group.Sum(x => x.NoOfBars);
+                    ws.Cells[row, 7].Value = group.Sum(x => x.Weight);
+                    ws.Cells[row, 8].Value = group.Sum(x => x.WeightTon);
+
+                    // Format summary row
+                    ws.Cells[row, 5, row, 8].Style.Font.Bold = true;
+                    ws.Cells[row, 1, row, headers.Length].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    ws.Cells[row, 1, row, headers.Length].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightYellow);
                     row++;
                 }
 
