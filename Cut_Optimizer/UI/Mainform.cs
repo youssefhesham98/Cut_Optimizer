@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.UI;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,6 +23,7 @@ namespace Cut_Optimizer.UI
         public static string toDate { get; set; }
         public static string directory { get; set; }
         public static string ttle { get; set; }
+        public static string excel { get; set; }
         public Mainform()
         {
             InitializeComponent();
@@ -148,7 +150,7 @@ namespace Cut_Optimizer.UI
             }
             selectedDates = GetDateRangeAsStrings(startDate, endDate);
             string allDates = string.Join("\n", selectedDates);
-            ExCmd.exevt.request = Request.Test;
+            ExCmd.exevt.request = Request.Report;
             ExCmd.exevthan.Raise();
 
             // Example:
@@ -237,6 +239,24 @@ namespace Cut_Optimizer.UI
             {
                 TaskDialog.Show("Error", "No URL entered.");
             }
+        }
+
+        private void assign_Click(object sender, EventArgs e)
+        {
+            excelfile.Title = "Select Rebar Activity Schedule";
+            excelfile.Filter = "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*";
+            excelfile.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            if (excelfile.ShowDialog() != DialogResult.OK)
+            {
+                TaskDialog.Show("Cancelled", "Operation cancelled. No Excel file selected.");
+                return;
+            }
+            string excelPath = excelfile.FileName;
+            excel = excelPath;
+
+            ExCmd.exevt.request = Request.Assign;
+            ExCmd.exevthan.Raise();
         }
     }
 }

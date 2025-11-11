@@ -314,6 +314,91 @@ namespace Cut_Optimizer
 
             return dateList;
         }
+        public static void GetRebarActivityIDs(Document doc,string excelPath)
+        {
+            try
+            {
+                if (!File.Exists(excelPath))
+                {
+                    TaskDialog.Show("Error", $"Excel file not found:\n{excelPath}");
+                }
+                // Dictionary to store results
+                Dictionary<string, string> activityDateMap = ReadActivityDateFromExcel(excelPath);
+
+                // Collect all elements of category OST_Rebar (Structural Rebar)
+                FilteredElementCollector rebarCollector = new FilteredElementCollector(doc)
+                    .OfCategory(BuiltInCategory.OST_Rebar)
+                    .WhereElementIsNotElementType();
+                int updatedCount = 0;
+
+                using (Transaction trans = new Transaction(doc, "Sync Rebar Dates from Excel"))
+                {
+                    trans.Start();
+
+                    foreach (Element rebar in rebarCollector)
+                    {
+                        Parameter activityParam = rebar.LookupParameter("Activity ID");
+                        Parameter dateParam = rebar.LookupParameter("Date"); 
+
+                        if (activityParam == null || dateParam == null)
+                            continue;
+
+                        string rebarActivityId = activityParam.AsString();
+
+                        if (string.IsNullOrWhiteSpace(rebarActivityId))
+                            continue;
+
+                        // Find matching activity
+                        if (activityDateMap.TryGetValue(rebarActivityId, out string dateString))
+                        {
+                            if (!string.IsNullOrWhiteSpace(dateString))
+                            {
+                            if (dateParam.StorageType == StorageType.String)
+                            {
+                                dateParam.Set(dateString.Trim());
+                                updatedCount++;
+                            }
+                        }
+                        }
+                    }
+
+                    trans.Commit();
+                }
+        }
+            catch (Exception ex)
+            {
+
+                TaskDialog.Show("Error", ex.Message);
+            }
+}
+
+        private static Dictionary<string, string> ReadActivityDateFromExcel(string filePath)
+        {
+            Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0]; // first sheet
+                if (worksheet == null)
+                    throw new Exception("No worksheet found in Excel file.");
+
+                int rowCount =/* worksheet.Dimension.End.Row;*/100;
+
+                // Assume row 1 = headers: "Activity ID", "Date"
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    string activityId = worksheet.Cells[row, 1].Text?.Trim();
+                    string dateValue = worksheet.Cells[row, 2].Text?.Trim();
+
+                    if (!string.IsNullOrEmpty(activityId) && !map.ContainsKey(activityId))
+                        map.Add(activityId, dateValue);
+                }
+            }
+
+            return map;
+        }
     }
 
 }

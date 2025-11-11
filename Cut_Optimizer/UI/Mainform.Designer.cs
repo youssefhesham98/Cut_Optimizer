@@ -44,6 +44,8 @@
             this.edecs = new System.Windows.Forms.PictureBox();
             this.panel3 = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.assign = new System.Windows.Forms.Button();
+            this.excelfile = new System.Windows.Forms.OpenFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.cls)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lnkd)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.edecs)).BeginInit();
@@ -191,12 +193,23 @@
             this.panel4.Size = new System.Drawing.Size(100, 2);
             this.panel4.TabIndex = 7;
             // 
+            // assign
+            // 
+            this.assign.Location = new System.Drawing.Point(12, 124);
+            this.assign.Name = "assign";
+            this.assign.Size = new System.Drawing.Size(407, 23);
+            this.assign.TabIndex = 14;
+            this.assign.Text = "Assign";
+            this.assign.UseVisualStyleBackColor = true;
+            this.assign.Click += new System.EventHandler(this.assign_Click);
+            // 
             // Mainform
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(431, 206);
+            this.Controls.Add(this.assign);
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.cls);
@@ -245,5 +258,7 @@
         private System.Windows.Forms.PictureBox cls;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Panel panel4;
+        private System.Windows.Forms.Button assign;
+        private System.Windows.Forms.OpenFileDialog excelfile;
     }
 }

@@ -17,8 +17,11 @@ namespace Cut_Optimizer
         {
             switch (request)
             {
-                case Request.Test:
+                case Request.Report:
                     RvtUtils.Collector(ExCmd.doc,Mainform.fromDate,Mainform.toDate,Mainform.ttle,Mainform.directory);
+                    break;
+                case Request.Assign:
+                    RvtUtils.GetRebarActivityIDs(ExCmd.doc, Mainform.excel);
                     break;
             }
         }
@@ -29,7 +32,8 @@ namespace Cut_Optimizer
         }
         public enum Request
         {
-            Test,
+            Report,
+            Assign
         }
     }
 }
