@@ -179,6 +179,13 @@ namespace Cut_Optimizer
                 .ThenBy(r => r.BarLength)
                 .ToList();
         }
+        /// <summary>
+        /// Exports rebar summary to an Excel file.
+        /// </summary>
+        /// <param name="fromdate"></param>
+        /// <param name="todate"></param>
+        /// <param name="rebarDataList"></param>
+        /// <param name="savePath"></param>
         private static void ExportRebarSummaryToExcel(string fromdate,string todate,List<Data> rebarDataList,/*List<string> selectedDates,*/ string savePath)
         {
             if (rebarDataList == null || rebarDataList.Count == 0)
@@ -289,6 +296,13 @@ namespace Cut_Optimizer
             var match = Regex.Match(input, pattern);
             return match.Success ? match.Groups[1].Value.Trim() : "N/A";
         }
+        /// <summary>
+        /// Get date range list in "yyyyMMdd" format between two dates.
+        /// </summary>
+        /// <param name="fromDateStr"></param>
+        /// <param name="toDateStr"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static List<string> GetDateRangeList(string fromDateStr, string toDateStr)
         {
             string[] formats = { "dd/MM/yyyy", "d/M/yyyy", "d/MM/yyyy", "dd/M/yyyy" };
@@ -314,6 +328,11 @@ namespace Cut_Optimizer
 
             return dateList;
         }
+        /// <summary>
+        /// Get ranbar Activity IDs from Excel and update Rebar elements in the document.
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <param name="excelPath"></param>
         public static void GetRebarActivityIDs(Document doc,string excelPath)
         {
             try
@@ -371,7 +390,12 @@ namespace Cut_Optimizer
                 TaskDialog.Show("Error", ex.Message);
             }
 }
-
+        /// <summary>
+        /// Read activity IDs and dates from Excel into a dictionary.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         private static Dictionary<string, string> ReadActivityDateFromExcel(string filePath)
         {
             Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
